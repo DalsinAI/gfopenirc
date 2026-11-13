@@ -9,12 +9,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # gfopennetkit at a fixed commit (its main after #4)
+      # gfopennetkit at a fixed commit (its main after #4: a code for each connect step)
       - uses: actions/checkout@v4
         with:
           repository: DalsinAI/gfopennetkit
           ref: 9920b44a08ad7afe4db8f7899c434949d054cc6a
           path: deps/gfopennetkit
-      - run: cmake -S . -B build -DNETKIT_DIR=$GITHUB_WORKSPACE/deps/gfopennetkit
+      # gfopenlayout (its UI, olui) for the chat window, also at a fixed commit
+      - uses: actions/checkout@v4
+        with:
+          repository: DalsinAI/gfopenlayout
+          ref: 766e731837459d22709fa2364e6dd4d95bae95c5
+          path: deps/gfopenlayout
+      - run: cmake -S . -B build -DNETKIT_DIR=$GITHUB_WORKSPACE/deps/gfopennetkit -DGFOPENLAYOUT_DIR=$GITHUB_WORKSPACE/deps/gfopenlayout
       - run: cmake --build build -j2
       - run: ctest --test-dir build --output-on-failure
+      # IRCView against stand-in Amiga headers: GCC's warnings at -O2, as the stove build sees them
+      - run: >-
+          gcc -std=gnu99 -O2 -Wall -Wextra -Werror -Wformat-truncation=2 -Wformat-overflow=2
+          -c -Itests/amiga-stubs -Iinclude -I$GITHUB_WORKSPACE/deps/gfopennetkit/include
+          -I$GITHUB_WORKSPACE/deps/gfopenlayout/include amiga/IRCView.c -o /dev/null
