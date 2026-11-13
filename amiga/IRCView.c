@@ -153,6 +153,17 @@ static int window_key(App *a, struct IntuiMessage *m)
     return 0;
 }
 
+/* Which step of the connect failed, in words, with netkit's own text. */
+static const char *connect_failed(char *out, size_t cap, const char *host, long port, int r)
+{
+    const char *step = r == NK_ERESOLVE ? "the name didn't resolve"
+                     : r == NK_ESOCKET ? "no socket could be made"
+                     : r == NK_EREFUSED || r == NK_ETIMEDOUT || r == NK_EUNREACH
+                       ? "the server didn't answer" : "it failed";
+    snprintf(out, cap, "Can't connect to %.200s port %ld: %s (%s).", host, port, step, nk_strerror(r));
+    return out;
+}
+
 int main(void)
 {
     static const IwWinOps ops = { command, shown, close_buffer, connect_to };
@@ -165,9 +176,9 @@ int main(void)
     NKConn *conn;
     IrConfig cfg;
     IwConnect form;
-    char err[128], now[6];
+    char err[320], now[6];
     App a;
-    int done = 0, rc = RETURN_FAIL, port;
+    int done = 0, rc = RETURN_FAIL, port, r;
     (void)version;
 
     memset(&a, 0, sizeof(a));
@@ -205,8 +216,8 @@ int main(void)
     iu_note(a.s, NULL, err, clock_now(now));
     iw_win_refresh(a.win);
     olui_amiga_draw(glue);
-    if (nk_amiga_tcp(SocketBase, (const char *)args[0], (uint16_t)port, &t) != NK_OK) {
-        iu_note(a.s, NULL, "Can't connect.", clock_now(now));
+    if ((r = nk_amiga_tcp(SocketBase, (const char *)args[0], (uint16_t)port, &t)) != NK_OK) {
+        iu_note(a.s, NULL, connect_failed(err, sizeof(err), (const char *)args[0], (long)port, r), clock_now(now));
         a.gone = 1;
     } else if (!(conn = nk_conn_new(NULL, t, now_ms()))) {
         PutStr((STRPTR)"IRCView: out of memory\n");

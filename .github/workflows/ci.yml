@@ -9,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # gfopennetkit at a fixed commit; moved on in its own PR
+      # gfopennetkit at a fixed commit (8326f68: gfopennetkit #4 on #2, a code for each connect step)
       - uses: actions/checkout@v4
         with:
           repository: DalsinAI/gfopennetkit
-          ref: dde4ff9fd4287a9b4bce3ad858083a3f9e69d62e
+          ref: 8326f689d4bb2e6744b0b555559598d3100b6b17
           path: deps/gfopennetkit
       # gfopenlayout (its UI, olui) for the chat window, also at a fixed commit
       - uses: actions/checkout@v4
