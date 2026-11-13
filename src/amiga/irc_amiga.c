@@ -39,7 +39,7 @@
 static const char VERSTAG[] = "$VER: GFOpenIRC 0.1 (13.11.2026)";
 
 struct Library *SocketBase;
-struct Library *GFOpenTLSBase;
+struct Library *OpenTLSBase;
 #ifdef HAVE_GFOPENKEYS
 struct Library *GFOpenKeysBase;
 #endif
@@ -176,7 +176,7 @@ int main(void)
         printf("GFOpenIRC: no TCP/IP stack (bsdsocket.library)\n");
         goto out;
     }
-    if (use_tls && !(GFOpenTLSBase = OpenLibrary((CONST_STRPTR)OPENTLSLIB_NAME, OPENTLSLIB_VERSION))) {
+    if (use_tls && !(OpenTLSBase = OpenLibrary((CONST_STRPTR)OPENTLSLIB_NAME, OPENTLSLIB_VERSION))) {
         printf("GFOpenIRC: needs %s (or NOTLS)\n", OPENTLSLIB_NAME);
         goto out;
     }
@@ -241,7 +241,7 @@ int main(void)
         memset(&cc, 0, sizeof(cc));
         cc.Size = sizeof(cc);
         ctx = OT_NewContext(&cc, &err);
-        if (!ctx || nk_amiga_tls(GFOpenTLSBase, ctx, host, args[A_INSECURE] ? OTV_NONE : OTV_FULL,
+        if (!ctx || nk_amiga_tls(OpenTLSBase, ctx, host, args[A_INSECURE] ? OTV_NONE : OTV_FULL,
                                  0, &tcp, &t) != NK_OK) {
             printf("GFOpenIRC: TLS: %s\n", ctx ? "cannot start" : (char *)OT_ErrorString(err));
             nk_transport_close(&tcp);
@@ -309,7 +309,7 @@ out:
 #ifdef HAVE_GFOPENKEYS
     if (GFOpenKeysBase) CloseLibrary(GFOpenKeysBase);
 #endif
-    if (GFOpenTLSBase) CloseLibrary(GFOpenTLSBase);
+    if (OpenTLSBase) CloseLibrary(OpenTLSBase);
     if (SocketBase) CloseLibrary(SocketBase);
     FreeArgs(rd);
     return rc;
