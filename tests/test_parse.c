@@ -102,5 +102,20 @@ int main(void)
     CHECK_EQ(ir_split_at("abcdefghij", 10, 4), 4);
     CHECK_EQ(ir_split_at("ab\xc3\xa9" "cd", 6, 3), 2);           /* not inside é */
     CHECK_EQ(ir_split_at("\xe2\x82\xac\xe2\x82\xac", 6, 4), 3);  /* one euro sign */
+
+    /* the buffer a front end writes to after the user's line */
+    strcpy(b, "#amiga");
+    CHECK_EQ(ir_input_target("/msg krissie hi there", b, sizeof(b)), 1);
+    CHECK(!strcmp(b, "krissie"));
+    CHECK_EQ(ir_input_target("/QUERY  Dale", b, sizeof(b)), 1);
+    CHECK(!strcmp(b, "Dale"));
+    CHECK_EQ(ir_input_target("/query", b, sizeof(b)), 0);
+    CHECK_EQ(ir_input_target("/msg ", b, sizeof(b)), 0);
+    CHECK_EQ(ir_input_target("/msgx nick hi", b, sizeof(b)), 0);
+    CHECK_EQ(ir_input_target("/me waves", b, sizeof(b)), 0);
+    CHECK_EQ(ir_input_target("hello /msg x", b, sizeof(b)), 0);
+    CHECK_EQ(ir_input_target("/msg averyveryverylongnick hi", b, 8), 0);
+    CHECK(!strcmp(b, "Dale"));
+    CHECK_EQ(ir_input_target(0, b, sizeof(b)), 0);
     TEST_DONE();
 }
