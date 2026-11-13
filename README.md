@@ -25,7 +25,7 @@ Rules: commits are authored and committed by SacredTrees; draw through GFOpenLay
 
 Without a gfopenlayout checkout the chat window and its test are left out. `test_ui_window` drives the window with olui's own pointer and key calls at 800 x 600.
 
-IRCView for the Amiga: `./build-amiga.sh` (the os32 GCC 16 stove, gfopennetkit's and gfopenlayout's Amiga libraries built first).
+IRCView for the Amiga: `./build-ircview.sh` (the os32 GCC 16 stove, gfopennetkit's and gfopenlayout's Amiga libraries built first).
 
 `cli_fake_server` runs the CLI against gfopennetkit's fake IRC server, directly and through its fake SOCKS5 proxy; no test needs the internet.
 
@@ -34,7 +34,7 @@ IRCView for the Amiga: `./build-amiga.sh` (the os32 GCC 16 stove, gfopennetkit's
 A unit test can't show the window drawn by the Amiga glue or the keys as Intuition gives them, so these run in a lab copy:
 
 1. On the lab host: `python3 ../gfopennetkit/tests/fakes/fakeserv.py irc`. It prints `PORTS irc=N`.
-2. Copy `build-amiga/IRCView` to the lab's `RAM:` and run `RAM:IRCView HOST=<the host as the lab's network sees it> PORT=N NICK=amiga CHANNELS=#amiga`.
+2. Copy `build-ircview/IRCView` to the lab's `RAM:` and run `RAM:IRCView HOST=<the host as the lab's network sees it> PORT=N NICK=amiga CHANNELS=#amiga`.
 3. The window opens with the host given at the top of the list. Its log shows "Connecting to ...", then the welcome. `#amiga` appears under it, indented.
 4. Choose `#amiga`. The nick list shows `@op`, `+voice`, `amiga`. The topic sits over the log, and the input line has the focus.
 5. Type `hello` and press Return. `<amiga> hello` goes in the log, and the fake server's `echo` answers.

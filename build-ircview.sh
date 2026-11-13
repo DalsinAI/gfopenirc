@@ -12,7 +12,7 @@ STOVE=${STOVE:-"$HOME/AmiCradle/stoves/os32-gcc16"}
 CC=${CC:-"$STOVE/prefix/bin/m68k-amigaos-gcc"}
 NETKIT=${NETKIT:-"$HERE/../gfopennetkit"}
 OL=${OL:-"$HERE/../gfopenlayout"}
-OUT=${OUT:-"$HERE/build-amiga"}
+OUT=${OUT:-"$HERE/build-ircview"}
 NETKIT_LIB=${NETKIT_LIB:-"$NETKIT/build-amiga/lib/libgfopennetkit.a"}
 OLUI_LIB=${OLUI_LIB:-"$OL/build-amiga/ui/libolui.a"}
 CFLAGS="-m68040 -O2 -fomit-frame-pointer -noixemul -Wall -Wextra -Werror -std=gnu99
