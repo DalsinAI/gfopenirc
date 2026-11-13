@@ -1,14 +1,14 @@
 #!/bin/sh
-# GFOpenIRC for AmigaOS 3.x on the 68040 with the os32 GCC 16 stove:
+# GFOpenIRC for AmigaOS 3.x on the 68040 with the os32 GCC 16 stove (open6: its proto/socket.h is the one gfopennetkit needs):
 # IRCView, the chat window on one server over plain TCP.
-#   STOVE    the stove (default ~/AmiCradle/stoves/os32-gcc16)
+#   STOVE    the stove (default ~/AmiCradle/stoves/os32-gcc16-open6)
 #   NETKIT   a gfopennetkit checkout, its build-amiga.sh run (default ../gfopennetkit)
 #   OL       a gfopenlayout checkout, its build-ui-amiga.sh run (default ../gfopenlayout)
 #   OUT      the output directory (default build-ircview)
 # MIT licence, (c) 2026 AmiCradle Team.
 set -eu
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
-STOVE=${STOVE:-"$HOME/AmiCradle/stoves/os32-gcc16"}
+STOVE=${STOVE:-"$HOME/AmiCradle/stoves/os32-gcc16-open6"}
 CC=${CC:-"$STOVE/prefix/bin/m68k-amigaos-gcc"}
 NETKIT=${NETKIT:-"$HERE/../gfopennetkit"}
 OL=${OL:-"$HERE/../gfopenlayout"}
