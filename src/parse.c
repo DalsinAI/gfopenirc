@@ -242,3 +242,36 @@ size_t ir_split_at(const char *text, size_t len, size_t room)
             return k;
     return cut ? cut : room;
 }
+
+/* the first n bytes of s are `w` (lower case), in any case */
+static int word_is(const char *s, const char *w, size_t n)
+{
+    size_t i;
+    for (i = 0; i < n; i++)
+        if (fold(IR_CM_ASCII, (unsigned char)s[i]) != w[i])
+            return 0;
+    return 1;
+}
+
+int ir_input_target(const char *input, char *current, size_t cap)
+{
+    const char *to;
+    size_t tl, k;
+    if (!input || !current || !cap)
+        return 0;
+    if (input[0] != '/')
+        return 0;
+    for (k = 1; input[k] && input[k] != ' '; k++)
+        ;
+    if (!(k == 4 && word_is(input, "/msg", 4)) && !(k == 6 && word_is(input, "/query", 6)))
+        return 0;
+    to = input + k;
+    while (*to == ' ')
+        to++;
+    tl = strcspn(to, " ");
+    if (!tl || tl >= cap)
+        return 0;
+    memcpy(current, to, tl);
+    current[tl] = 0;
+    return 1;
+}

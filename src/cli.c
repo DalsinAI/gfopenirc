@@ -197,14 +197,7 @@ int main(int argc, char **argv)
                 *nl = 0;
                 if (nl > in && nl[-1] == '\r') nl[-1] = 0;
                 if (in[0]) {
-                    if (!strncmp(in, "/query ", 7) || !strncmp(in, "/msg ", 5)) {
-                        const char *to = strchr(in, ' ') + 1;
-                        size_t tl = strcspn(to, " ");
-                        if (tl < sizeof(app.current)) {
-                            memcpy(app.current, to, tl);
-                            app.current[tl] = 0;
-                        }
-                    }
+                    ir_input_target(in, app.current, sizeof(app.current));
                     if (ir_command(app.c, app.current[0] ? app.current : 0, in) != NK_OK)
                         printf("*\tinput\t\tcannot do: %s\n", in);
                 }
