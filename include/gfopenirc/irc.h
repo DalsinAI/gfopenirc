@@ -71,7 +71,9 @@ typedef struct IrConfig {
     const char *sasl_user;     /* SASL PLAIN when set (needs sasl_pass) */
     const char *sasl_pass;     /* copied and wiped after use */
     int         sasl_required; /* quit rather than go on unauthenticated */
-    int         tls;           /* the connection is TLS (set by the caller) */
+    int         tls;           /* the connection is TLS with the server's
+                                  certificate checked (set by the caller;
+                                  TLS without the check counts as plain) */
     int         allow_plain_auth; /* send PASS/SASL over plain TCP anyway
                                      (off by default: the password would
                                      cross the network in clear) */
@@ -119,7 +121,8 @@ typedef void (*IrEventFn)(void *user, const IrEvent *ev);
 typedef struct IrClient IrClient;
 
 /* NK_OK; NK_EARG for a bad nick, user, real name or password; NK_EREFUSED
- * when a password (PASS or SASL) would go over plain TCP and
+ * when a password (PASS, or SASL: a sasl_user is enough, so a caller can
+ * check before it looks the password up) would go over plain TCP and
  * allow_plain_auth isn't set. */
 int ir_config_check(const IrConfig *cfg);
 /* Takes the connection (freed by ir_free) and queues the registration.

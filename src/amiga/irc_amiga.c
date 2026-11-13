@@ -8,7 +8,8 @@
  * TLS on port 6697 by default, with the certificate checked against the
  * system trust store. NOTLS connects in plain text (port 6667); a password
  * is then refused unless ALLOWPLAIN is given. INSECURE skips the
- * certificate check (encryption without knowing who is at the other end).
+ * certificate check (encryption without knowing who is at the other end),
+ * so a password is refused with it too unless ALLOWPLAIN is given.
  * The SASL password is the gfopenkeys entry irc-sasl/<server>/<sasluser>; with no
  * gfopenkeys.library, or no entry, the client goes on without SASL (or
  * stops, with SASLREQUIRED).
@@ -187,9 +188,20 @@ int main(void)
     cfg.nick = (const char *)args[A_NICK];
     cfg.user = (const char *)args[A_USER];
     cfg.realname = (const char *)args[A_REAL];
-    cfg.tls = use_tls;
+    /* INSECURE skips the certificate check, so a man in the middle could
+     * read a password: for the password check it counts as plain TCP. */
+    cfg.tls = use_tls && !args[A_INSECURE];
     cfg.allow_plain_auth = args[A_ALLOWPLAIN] != 0;
     cfg.sasl_required = args[A_SASLREQ] != 0;
+    /* refuse before asking GFOpenKeys (which may open its unlock requester) */
+    cfg.sasl_user = (const char *)args[A_SASLUSER];
+    r = ir_config_check(&cfg);
+    cfg.sasl_user = 0;
+    if (r == NK_EREFUSED) {
+        printf(use_tls ? "GFOpenIRC: not sending a password with INSECURE (ALLOWPLAIN to do it anyway)\n"
+                       : "GFOpenIRC: not sending a password without TLS (ALLOWPLAIN to do it anyway)\n");
+        goto out;
+    }
     if (args[A_SASLUSER]) {
         if (find_password(host, (const char *)args[A_SASLUSER], pw, sizeof(pw))) {
             cfg.sasl_user = (const char *)args[A_SASLUSER];
