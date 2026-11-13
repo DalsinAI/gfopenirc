@@ -26,7 +26,7 @@ def run(args, script, pw="s3cret"):
 
 
 base = ["--server", "127.0.0.1", "--port", irc, "--nick", "taken", "--sasl-user", "dale",
-        "--pass-env", "IRC_PW", "--join", "#amiga", "--interval", "50"]
+        "--pass-env", "IRC_PW", "--join", "#amiga", "--interval", "50", "--allow-plain-auth"]
 script = "hello amigans\n/me waves\n/msg friend psst\n/quit see you\n"
 r = run(base, script)
 ev = [l.split("\t") for l in r.stdout.splitlines()]
@@ -61,6 +61,13 @@ check(r.returncode == 0 and "\techo\tthrough the proxy" in r.stdout,
 r = run(base + ["--sasl-required"], "", pw="nope")
 check(r.returncode == 4, "refused SASL exits 4: %d %r %r" % (r.returncode, r.stdout, r.stderr))
 check("registered" not in r.stdout, "never registered")
+
+# without --allow-plain-auth the host build (no TLS) won't send the password
+r = run([a for a in base if a != "--allow-plain-auth"], "/quit\n")
+check(r.returncode == 2 and "without TLS" in r.stderr, "plain auth refused: %d %r" % (r.returncode, r.stderr))
+
+# a tag value can't break the one-line-per-event output
+check(all(len(e) >= 2 for e in ev), "every output line is an event")
 
 print("ok" if not fails else "%d failures" % fails)
 sys.exit(1 if fails else 0)
