@@ -71,6 +71,10 @@ typedef struct IrConfig {
     const char *sasl_user;     /* SASL PLAIN when set (needs sasl_pass) */
     const char *sasl_pass;     /* copied and wiped after use */
     int         sasl_required; /* quit rather than go on unauthenticated */
+    int         tls;           /* the connection is TLS (set by the caller) */
+    int         allow_plain_auth; /* send PASS/SASL over plain TCP anyway
+                                     (off by default: the password would
+                                     cross the network in clear) */
     uint32_t    burst;         /* lines sent at once before throttling (5) */
     uint32_t    interval_ms;   /* then one line every this many ms (2000) */
     uint32_t    ping_ms;       /* PING the server after this quiet time (90 s) */
@@ -114,7 +118,12 @@ typedef void (*IrEventFn)(void *user, const IrEvent *ev);
 
 typedef struct IrClient IrClient;
 
-/* Takes the connection (freed by ir_free) and queues the registration. */
+/* NK_OK; NK_EARG for a bad nick, user, real name or password; NK_EREFUSED
+ * when a password (PASS or SASL) would go over plain TCP and
+ * allow_plain_auth isn't set. */
+int ir_config_check(const IrConfig *cfg);
+/* Takes the connection (freed by ir_free) and queues the registration.
+ * NULL when ir_config_check fails (the connection is then the caller's). */
 IrClient *ir_new(NKConn *conn, const IrConfig *cfg, IrEventFn fn, void *user, uint32_t now_ms);
 void      ir_free(IrClient *c);
 /* Moves bytes, handles every line, answers PING, keeps the link alive and

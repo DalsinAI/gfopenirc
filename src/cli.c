@@ -6,7 +6,8 @@
  * options: --server HOST --port N --nick N --user U --realname R
  *          --sasl-user U --pass-env VAR (SASL password from the environment)
  *          --sasl-required --join CHANNEL (repeatable) --socks HOST:PORT
- *          --burst N --interval MS
+ *          --burst N --interval MS --allow-plain-auth (a password over a
+ *          connection without TLS: refused otherwise)
  * Input: "/join #x", "/msg nick text", "/me waves", "/quit bye", ... or
  * plain text to the current channel or query (the last one joined or
  * queried). Output: "<target>\t<event>\t<nick>\t<text>".
@@ -68,7 +69,7 @@ static void usage(void)
 {
     fputs("usage: gfopenirc-cli [--server H] [--port N] --nick N [--user U] [--realname R]\n"
           "       [--sasl-user U --pass-env VAR] [--sasl-required] [--join #C]...\n"
-          "       [--socks H:P] [--burst N] [--interval MS]\n", stderr);
+          "       [--socks H:P] [--burst N] [--interval MS] [--allow-plain-auth]\n", stderr);
 }
 
 static int connect_to(const char *server, int port, const char *socks, NKTransport *t)
@@ -119,6 +120,7 @@ int main(int argc, char **argv)
     memset(&app, 0, sizeof(app));
     for (i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--sasl-required")) { cfg.sasl_required = 1; continue; }
+        if (!strcmp(argv[i], "--allow-plain-auth")) { cfg.allow_plain_auth = 1; continue; }
         if (i + 1 >= argc) { usage(); return 2; }
         if (!strcmp(argv[i], "--server")) server = argv[++i];
         else if (!strcmp(argv[i], "--port")) port = atoi(argv[++i]);
@@ -137,6 +139,13 @@ int main(int argc, char **argv)
     if (cfg.sasl_user) {
         cfg.sasl_pass = passenv ? getenv(passenv) : 0;
         if (!cfg.sasl_pass) { fprintf(stderr, "SASL needs a password (--pass-env)\n"); return 2; }
+    }
+    /* this host build has no TLS: a password needs --allow-plain-auth */
+    if ((r = ir_config_check(&cfg)) != NK_OK) {
+        fprintf(stderr, r == NK_EREFUSED
+                ? "not sending a password over a connection without TLS (--allow-plain-auth to do it anyway)\n"
+                : "bad nick, user or real name\n");
+        return 2;
     }
     if ((r = connect_to(server, port, socks, &t)) != NK_OK) {
         fprintf(stderr, "cannot reach %s:%d: %s\n", server, port, nk_strerror(r));

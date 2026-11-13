@@ -249,11 +249,16 @@ static void cap_end(IrClient *c)
     emit(c, IR_EV_CAPS, 0, 0, c->caps, 0, 0);
 }
 
+/* a store the compiler can't drop */
+static void wipe(void *p, size_t n)
+{
+    volatile unsigned char *v = (volatile unsigned char *)p;
+    while (n--) *v++ = 0;
+}
+
 static void wipe_pass(IrClient *c)
 {
-    volatile char *p = c->sasl_pass;
-    size_t i;
-    for (i = 0; i < sizeof(c->sasl_pass); i++) p[i] = 0;
+    wipe(c->sasl_pass, sizeof(c->sasl_pass));
 }
 
 static void caps_settled(IrClient *c)
@@ -333,6 +338,7 @@ static void on_authenticate(IrClient *c, const IrMsg *m)
     if (ul * 2 + pl + 2 > sizeof(raw)) {
         direct(c, "AUTHENTICATE *");
         wipe_pass(c);
+        wipe(raw, sizeof(raw));
         return;
     }
     memcpy(raw, c->sasl_user, ul);
@@ -341,7 +347,7 @@ static void on_authenticate(IrClient *c, const IrMsg *m)
     raw[2 * ul + 1] = 0;
     memcpy(raw + 2 * ul + 2, c->sasl_pass, pl);
     n = ir_b64(raw, 2 * ul + 2 + pl, b64, sizeof(b64));
-    memset(raw, 0, sizeof(raw));
+    wipe(raw, sizeof(raw));
     wipe_pass(c);
     for (at = 0; at < n; at += 400) {
         char line[420];  /* 13 + 400 + NUL */
@@ -350,10 +356,11 @@ static void on_authenticate(IrClient *c, const IrMsg *m)
         memcpy(line + 13, b64 + at, k);
         line[13 + k] = 0;
         direct(c, line);
+        wipe(line, sizeof(line));
     }
     if (n % 400 == 0)
         direct(c, "AUTHENTICATE +");
-    memset(b64, 0, sizeof(b64));
+    wipe(b64, sizeof(b64));
     c->sasl_state = 2;
 }
 
@@ -776,10 +783,28 @@ static void handle(IrClient *c, const IrMsg *m)
 }
 
 /* ---- public ------------------------------------------------------------------ */
+int ir_config_check(const IrConfig *cfg)
+{
+    const char *u, *r;
+    if (!cfg || !cfg->nick || !*cfg->nick || bad_text(cfg->nick) || strchr(cfg->nick, ' '))
+        return NK_EARG;
+    u = cfg->user && *cfg->user ? cfg->user : cfg->nick;
+    r = cfg->realname && *cfg->realname ? cfg->realname : cfg->nick;
+    if (bad_text(u) || strchr(u, ' ') || bad_text(r) ||
+        (cfg->server_pass && bad_text(cfg->server_pass)) ||
+        (cfg->sasl_user && bad_text(cfg->sasl_user)))
+        return NK_EARG;
+    if (!cfg->tls && !cfg->allow_plain_auth &&
+        ((cfg->server_pass && *cfg->server_pass) ||
+         (cfg->sasl_user && *cfg->sasl_user && cfg->sasl_pass && *cfg->sasl_pass)))
+        return NK_EREFUSED;
+    return NK_OK;
+}
+
 IrClient *ir_new(NKConn *conn, const IrConfig *cfg, IrEventFn fn, void *user, uint32_t now_ms)
 {
     IrClient *c;
-    if (!conn || !cfg || !cfg->nick || !*cfg->nick || bad_text(cfg->nick) || strchr(cfg->nick, ' '))
+    if (!conn || ir_config_check(cfg) != NK_OK)
         return 0;
     c = (IrClient *)calloc(1, sizeof(IrClient));
     if (!c) return 0;
@@ -801,14 +826,17 @@ IrClient *ir_new(NKConn *conn, const IrConfig *cfg, IrEventFn fn, void *user, ui
     c->now = c->last_credit = c->last_rx = now_ms;
     if (bad_text(c->user_name) || bad_text(c->realname) || strchr(c->user_name, ' ') ||
         strpbrk(c->server_pass, "\r\n")) {
+        wipe(c, sizeof(*c));
         free(c);
         return 0;
     }
     c->cap_open = 1;
     direct(c, "CAP LS 302");
-    if (c->server_pass[0])
+    if (c->server_pass[0]) {
         sendf(c, 0, "PASS %s", c->server_pass);
-    memset(c->server_pass, 0, sizeof(c->server_pass));
+        wipe(c->scratch, sizeof(c->scratch));
+    }
+    wipe(c->server_pass, sizeof(c->server_pass));
     sendf(c, 0, "NICK %s", c->nick);
     sendf(c, 0, "USER %s 0 * :%s", c->user_name, c->realname);
     return c;
@@ -825,7 +853,7 @@ void ir_free(IrClient *c)
         free(c->q[(c->qh + i) % c->qcap]);
     free(c->q);
     nk_conn_free(c->conn);
-    wipe_pass(c);
+    wipe(c, sizeof(*c));
     free(c);
 }
 
