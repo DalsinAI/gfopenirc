@@ -1,0 +1,20 @@
+name: GFOpenIRC CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  host:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # gfopennetkit at a fixed commit; moved on in its own PR
+      - uses: actions/checkout@v4
+        with:
+          repository: DalsinAI/gfopennetkit
+          ref: dde4ff9fd4287a9b4bce3ad858083a3f9e69d62e
+          path: deps/gfopennetkit
+      - run: cmake -S . -B build -DNETKIT_DIR=$GITHUB_WORKSPACE/deps/gfopennetkit
+      - run: cmake --build build -j2
+      - run: ctest --test-dir build --output-on-failure
