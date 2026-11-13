@@ -4,7 +4,7 @@
 #   STOVE    the stove (default ~/AmiCradle/stoves/os32-gcc16)
 #   NETKIT   a gfopennetkit checkout, its build-amiga.sh run (default ../gfopennetkit)
 #   OL       a gfopenlayout checkout, its build-ui-amiga.sh run (default ../gfopenlayout)
-#   OUT      the output directory (default build-amiga)
+#   OUT      the output directory (default build-ircview)
 # MIT licence, (c) 2026 AmiCradle Team.
 set -eu
 HERE=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
