@@ -9,11 +9,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # gfopennetkit at a fixed commit; moved on in its own PR
+      # gfopennetkit at a fixed commit (its main after #2)
       - uses: actions/checkout@v4
         with:
           repository: DalsinAI/gfopennetkit
-          ref: dde4ff9fd4287a9b4bce3ad858083a3f9e69d62e
+          ref: c1b2800c3ef740066d05c08e312e546749b940f7
           path: deps/gfopennetkit
       - run: cmake -S . -B build -DNETKIT_DIR=$GITHUB_WORKSPACE/deps/gfopennetkit
       - run: cmake --build build -j2
