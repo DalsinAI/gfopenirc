@@ -24,3 +24,8 @@ jobs:
       - run: cmake -S . -B build -DNETKIT_DIR=$GITHUB_WORKSPACE/deps/gfopennetkit -DGFOPENLAYOUT_DIR=$GITHUB_WORKSPACE/deps/gfopenlayout
       - run: cmake --build build -j2
       - run: ctest --test-dir build --output-on-failure
+      # IRCView against stand-in Amiga headers: GCC's warnings at -O2, as the stove build sees them
+      - run: >-
+          gcc -std=gnu99 -O2 -Wall -Wextra -Werror -Wformat-truncation=2 -Wformat-overflow=2
+          -c -Itests/amiga-stubs -Iinclude -I$GITHUB_WORKSPACE/deps/gfopennetkit/include
+          -I$GITHUB_WORKSPACE/deps/gfopenlayout/include amiga/IRCView.c -o /dev/null

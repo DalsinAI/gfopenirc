@@ -51,8 +51,12 @@ static uint32_t now_ms(void)
 static const char *clock_now(char out[6])
 {
     struct DateStamp d;
+    unsigned h, m;
     DateStamp(&d);
-    snprintf(out, 6, "%02ld:%02ld", (long)(d.ds_Minute / 60), (long)(d.ds_Minute % 60));
+    h = (unsigned)(d.ds_Minute / 60) % 24;      /* by hand: GCC can't see they fit in "HH:MM" */
+    m = (unsigned)(d.ds_Minute % 60);
+    out[0] = (char)('0' + h / 10); out[1] = (char)('0' + h % 10); out[2] = ':';
+    out[3] = (char)('0' + m / 10); out[4] = (char)('0' + m % 10); out[5] = 0;
     return out;
 }
 
