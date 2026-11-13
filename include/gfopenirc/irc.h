@@ -159,6 +159,10 @@ int ir_quit(IrClient *c, const char *reason);
  * "/raw LINE", "//text" sends "/text"; plain text is said to the buffer.
  * NK_EARG for an unknown command or plain text in the server tab. */
 int ir_command(IrClient *c, const char *buffer, const char *input);
+/* The buffer a front end writes to after the user's line: "/msg nick ..."
+ * and "/query nick" (any case) make `nick` current. 1 when `current` was set,
+ * 0 when the line names no target or it does not fit in `cap` bytes. */
+int ir_input_target(const char *input, char *current, size_t cap);
 
 /* ---- channel state ---------------------------------------------------------- */
 typedef struct IrMember {

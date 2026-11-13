@@ -14,10 +14,13 @@ Rules: commits are authored and committed by SacredTrees; draw through GFOpenLay
 | ISUPPORT, case mapping | `IrSupport`, `ir_casecmp` | CHANTYPES, PREFIX, CHANMODES, CASEMAPPING (ascii, rfc1459, strict-rfc1459), NICKLEN, NETWORK; which modes take a parameter |
 | Registration | `ir_new` | CAP LS 302 (several LS lines), REQ only what we use, SASL PLAIN (password sent in 400-byte pieces and wiped), `--sasl-required` quits rather than going on unauthenticated, a server with no CAP works too, nick in use tries another |
 | Client | `ir_pump`, `ir_command` | PING/PONG and a keepalive PING with timeout; channels, topics and members (multi-prefix, MODE prefix changes, NICK, PART, KICK, QUIT, away-notify, account-notify, extended-join); events per buffer (channel, query or server) with the server-time stamp; CTCP ACTION, VERSION, PING and CLIENTINFO with replies rate-limited; echo-message or local echo; STATUSMSG; a send throttle (burst, then one line per interval) so the server never kills us for flooding; long messages split at a space, never inside a UTF-8 character, sized for what other users receive; CR, LF and NUL refused everywhere |
-| CLI | `src/cli.c` | `gfopenirc-cli --server H --port N --nick N [--sasl-user U --pass-env VAR] [--sasl-required] [--join #C] [--socks H:P]`, then commands on standard input; one line per event. Host build; the Amiga build (bsdsocket, gfopentls, password from gfopenkeys, ReadArgs) comes next |
+| CLI | `src/cli.c` | `gfopenirc-cli --server H --port N --nick N [--sasl-user U --pass-env VAR] [--sasl-required] [--join #C] [--socks H:P]`, then commands on standard input; one line per event. Host build |
+| Amiga Shell client | `src/amiga/irc_amiga.c` | `GFOpenIRC SERVER/A,PORT/N,NICK/A,USER/K,REALNAME/K,SASLUSER/K,JOIN/K/M,PROXY/K,NOTLS/S,INSECURE/S,ALLOWPLAIN/S,SASLREQUIRED/S`: bsdsocket.library, TLS through gfopentls.library on port 6697 with the certificate checked (NOTLS for plain text, INSECURE to skip the check), the SASL password from gfopenkeys.library entry `irc-sasl/<server>/<sasluser>` (never on the command line), SOCKS5 through PROXY, lines typed in the Shell as commands, Ctrl-C quits |
 
 ## Building and testing
 
     cmake -S . -B build -DNETKIT_DIR=../gfopennetkit && cmake --build build && ctest --test-dir build
+
+For the Amiga, `./build-amiga.sh` (the os32-gcc16-open6 stove; NETKIT, TLS and KEYS name the gfopennetkit, gfopentls and gfopenkeys checkouts) builds `build-amiga/GFOpenIRC`. Without gfopenkeys headers it builds with no keystore, and so no SASL.
 
 `cli_fake_server` runs the CLI against gfopennetkit's fake IRC server, directly and through its fake SOCKS5 proxy; no test needs the internet.
