@@ -98,6 +98,7 @@ int main(void)
     cfg.realname = "Krissie Kochanski";
     cfg.sasl_user = "dale";
     cfg.sasl_pass = "s3cret";
+    cfg.tls = 1;
     cfg.burst = 3;
     cfg.interval_ms = 1000;
     c = start(&m, &l, &cfg);
@@ -287,6 +288,7 @@ int main(void)
     cfg.nick = "k";
     cfg.sasl_user = "dale";
     cfg.sasl_pass = "wrong";
+    cfg.tls = 1;
     c = start(&m, &l, &cfg);
     ir_pump(c, 0);
     feed(c, &m, ":srv CAP * LS :sasl\r\n:srv CAP * ACK :sasl\r\nAUTHENTICATE +\r\n"
@@ -335,6 +337,7 @@ int main(void)
         cfg.nick = "k";
         cfg.sasl_user = "dale";
         cfg.sasl_pass = pw;
+        cfg.tls = 1;
         c = start(&m, &l, &cfg);
         ir_pump(c, 0);
         feed(c, &m, ":srv CAP * LS :sasl\r\n:srv CAP * ACK :sasl\r\nAUTHENTICATE +\r\n", 1);
@@ -349,6 +352,33 @@ int main(void)
         CHECK_EQ(count_sent(&m, "AUTHENTICATE "), 3);
         ir_free(c);
     }
+
+    /* a password over plain TCP is refused unless asked for */
+    memset(&cfg, 0, sizeof(cfg));
+    cfg.nick = "k";
+    cfg.sasl_user = "dale";
+    cfg.sasl_pass = "s3cret";
+    CHECK_EQ(ir_config_check(&cfg), NK_EREFUSED);
+    CHECK(start(&m, &l, &cfg) == 0);
+    cfg.sasl_user = 0;
+    cfg.server_pass = "serverpw";
+    CHECK_EQ(ir_config_check(&cfg), NK_EREFUSED);
+    cfg.allow_plain_auth = 1;
+    CHECK_EQ(ir_config_check(&cfg), NK_OK);
+    c = start(&m, &l, &cfg);
+    CHECK(c != 0);
+    ir_pump(c, 0);
+    CHECK(sent(&m, "PASS serverpw"));
+    ir_free(c);
+    cfg.allow_plain_auth = 0;
+    cfg.tls = 1;
+    CHECK_EQ(ir_config_check(&cfg), NK_OK);
+    cfg.server_pass = 0;
+    cfg.tls = 0;
+    CHECK_EQ(ir_config_check(&cfg), NK_OK);        /* no password: fine */
+    cfg.server_pass = "a\r\nQUIT";
+    cfg.tls = 1;
+    CHECK_EQ(ir_config_check(&cfg), NK_EARG);
 
     /* bad configuration */
     memset(&cfg, 0, sizeof(cfg));

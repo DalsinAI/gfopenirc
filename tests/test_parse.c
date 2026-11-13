@@ -33,7 +33,7 @@ int main(void)
     CHECK(!strcmp(m.params[1], ":-)  hi"));
     /* tag escapes and value-less tags */
     CHECK_EQ(P(&m, "@a=x\\:y\\sz\\\\w\\r\\n;b;c=;d=e\\ :n PING x"), NK_OK);
-    CHECK(!strcmp(ir_tag(&m, "a"), "x;y z\\w\r\n"));
+    CHECK(!strcmp(ir_tag(&m, "a"), "x;y z\\w"));     /* \\r \\n dropped */
     CHECK(!strcmp(ir_tag(&m, "b"), "") && !strcmp(ir_tag(&m, "c"), ""));
     CHECK(!strcmp(ir_tag(&m, "d"), "e"));
     /* more than 15 parameters: the rest folded into the last */

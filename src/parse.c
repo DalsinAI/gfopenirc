@@ -14,8 +14,8 @@ static void unescape_tag(char *s)
         case ':': *o++ = ';'; break;
         case 's': *o++ = ' '; break;
         case '\\': *o++ = '\\'; break;
-        case 'r': *o++ = '\r'; break;
-        case 'n': *o++ = '\n'; break;
+        case 'r': case 'n': break;   /* no CR/LF in a value: it would break
+                                        the one-line-per-event output */
         case 0: *o = 0; return;      /* a lone backslash at the end is dropped */
         default: *o++ = *s; break;
         }
