@@ -43,7 +43,7 @@ A unit test can't show the window drawn by the Amiga glue or the keys as Intuiti
 5. Type `hello` and press Return. `<amiga> hello` goes in the log, and the fake server's `echo` answers.
 6. Press Up: `hello` comes back. Press Down: the line is empty again.
 7. Type `vo` and press Tab: the line reads `voice: `. Press Tab again; with one match it stays.
-8. Double-click `op` in the nick list. An `op` query opens under the server and is shown.
+8. Double-click `op` in the nick list, or click it once and press Return. An `op` query opens under the server and is shown.
 9. Choose the server, then Close: QUIT is sent and the log says "Disconnected.".
 10. Resize the window: the panes follow it, with nothing left over. Close the window.
 

@@ -300,6 +300,17 @@ int main(void)
     CHECK(!strcmp(seen.buffer, "Ann") && !strcmp(seen.text, "hello"));
     CHECK(ends_with(olui_get_text(olui_find(ui, "log")), "<me> hello"));
 
+    /* the keyboard way: a nick chosen in the list, then Return, opens its query too */
+    click_row(ui, "buffers", 1, OLUI_MOUSE_DOWN);
+    CHECK(strcmp(seen.buffer, "Ann") != 0);
+    click_row(ui, "nicks", 1, OLUI_MOUSE_DOWN);
+    CHECK(olui_focused(ui) == olui_find(ui, "nicks"));
+    iw_win_key(win, OLUI_KEY_RETURN, 0);
+    CHECK(!strcmp(seen.buffer, "Ann"));                /* Ann's query, already open, is shown */
+    CHECK_EQ(olui_vlist_rows(olui_find(ui, "buffers")), 3);
+    CHECK(olui_vlist_selected(olui_find(ui, "buffers"), 2));
+    CHECK(olui_focused(ui) == olui_find(ui, "input"));
+
     /* a second server's buffers follow the first's */
     iu_set_nick(other, "me");
     CHECK(iw_win_add(win, other));
