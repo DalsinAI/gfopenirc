@@ -360,6 +360,14 @@ int main(void)
     cfg.sasl_pass = "s3cret";
     CHECK_EQ(ir_config_check(&cfg), NK_EREFUSED);
     CHECK(start(&m, &l, &cfg) == 0);
+    cfg.sasl_pass = 0;                              /* before the lookup */
+    CHECK_EQ(ir_config_check(&cfg), NK_EREFUSED);
+    cfg.allow_plain_auth = 1;
+    CHECK_EQ(ir_config_check(&cfg), NK_OK);
+    cfg.allow_plain_auth = 0;
+    cfg.tls = 1;
+    CHECK_EQ(ir_config_check(&cfg), NK_OK);
+    cfg.tls = 0;
     cfg.sasl_user = 0;
     cfg.server_pass = "serverpw";
     CHECK_EQ(ir_config_check(&cfg), NK_EREFUSED);

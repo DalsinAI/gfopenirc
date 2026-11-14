@@ -795,8 +795,7 @@ int ir_config_check(const IrConfig *cfg)
         (cfg->sasl_user && bad_text(cfg->sasl_user)))
         return NK_EARG;
     if (!cfg->tls && !cfg->allow_plain_auth &&
-        ((cfg->server_pass && *cfg->server_pass) ||
-         (cfg->sasl_user && *cfg->sasl_user && cfg->sasl_pass && *cfg->sasl_pass)))
+        ((cfg->server_pass && *cfg->server_pass) || (cfg->sasl_user && *cfg->sasl_user)))
         return NK_EREFUSED;
     return NK_OK;
 }
